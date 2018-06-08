@@ -221,6 +221,24 @@ var protectBranch = async function(org, repo, branch = "master") {
   }
 };
 
+const createIssue = async function(owner, repo, title, body) {
+  var result;
+
+  try {
+    result = await octokit.issues.create({
+      owner,
+      repo,
+      title,
+      body
+    });
+  } catch (e) {
+    console.error("Could not create issue", e);
+    return e;
+  }
+
+  return result;
+};
+
 var ex = function(credentials) {
   octokit.authenticate({
     type: "token",
@@ -241,7 +259,8 @@ var ex = function(credentials) {
     moveTeam,
     removeRepoFromTeam,
     migrateTeamMembers,
-    protectBranch
+    protectBranch,
+    createIssue
   };
 };
 

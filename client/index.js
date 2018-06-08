@@ -87,6 +87,14 @@ var createNewRepository = async function(
   // after this intial commit, lock down the branch
   gh_client.protectBranch(org, repo);
 
+  // create first issue
+  const issueTitle = 'Another issue';
+  const issueBody = `
+- [ ] Create Readme
+- [ ] Create COC
+  `;
+  await gh_client.createIssue(org, repo, issueTitle, issueBody);
+
   console.log("All done");
 };
 
