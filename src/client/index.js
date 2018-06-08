@@ -88,10 +88,18 @@ var createNewRepository = async function(
   gh_client.protectBranch(org, repo);
 
   // create first issue
-  const issueTitle = 'Another issue';
+  const rootPath = '../blob/master/';
+  const issueTitle = 'To-dos';
   const issueBody = `
-- [ ] Create Readme
-- [ ] Create COC
+- [ ] [CONTRIBUTING.md](${rootPath}CONTRIBUTING.md) updated
+- [ ] [CONTRIBUTORS.md](${rootPath}CONTRIBUTORS.md) updated with names of external contributors
+- [ ] [CODEOWNERS](${rootPath}.github/CODEOWNERS) updated with usernames of who review which PRs
+- [ ] [MAINTAINERS](${rootPath}MAINTAINERS) updated with team member contact info
+- [ ] [CODE_OF_CONDUCT.md](${rootPath}CODE_OF_CONDUCT.md) reviewed
+- [ ] [SECURITY.md](${rootPath}SECURITY.md) reviewed
+- [ ] [Pull request template](${rootPath}.github/PULL_REQUEST_TEMPLATE.md) reviewed
+- [ ] [Issue template](${rootPath}.github/ISSUE_TEMPLATE.md) reviewed
+- [ ] [Readme](${rootPath}README.md) updated 
   `;
   await gh_client.createIssue(org, repo, issueTitle, issueBody);
 
