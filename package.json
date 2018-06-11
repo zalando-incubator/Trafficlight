@@ -4,7 +4,7 @@
   "description": "CLI for creating and migrating Github projects, teams and maintainers",
   "main": "index.js",
   "scripts": {
-    "start": "node cli.js"
+    "start": "node src/cli.js"
   },
   "author": "",
   "license": "MIT",
