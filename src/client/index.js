@@ -88,8 +88,8 @@ var createNewRepository = async function(
   gh_client.protectBranch(org, repo);
 
   // create first issue
-  const rootPath = '../blob/master/';
-  const issueTitle = 'To-dos';
+  const rootPath = "../blob/master/";
+  const issueTitle = "To-dos";
   const issueBody = `
 - [ ] [CONTRIBUTING.md](${rootPath}CONTRIBUTING.md) updated
 - [ ] [CONTRIBUTORS.md](${rootPath}CONTRIBUTORS.md) updated with names of external contributors
@@ -115,11 +115,20 @@ var migrateRepository = async function(org, repo) {
   // connect to github and git
   const gh_client = github(config.credentials);
 
-  // get current repo maintainers - not collaborators - that is a manual process
-  const maintainers = await gh_client.getRepoMaintainers(org, repo);
+  // get current repo maintainers - members of teams with admin or write access
+  const maintainers = await gh_client.getRepoMaintainers(org, repo, true);
 
-  // get current repo teams
+  // get current repo teams - also read-only teams
   const teams = await gh_client.getRepoTeams(org, repo);
+
+  // determine if there is already a ownership team:
+  const ownerTeam = teams.find(x => x.name === "Team " + repo);
+
+  // if there is an existing owner-team - stop the process
+
+  if (ownerTeam) {
+    throw "Repository already have a maintainers team";
+  }
 
   // get legacy team for migrating all legacy teams to for manual inspection
   var legacyParentTeam = await gh_client.findTeam(
@@ -127,7 +136,19 @@ var migrateRepository = async function(org, repo) {
     config.teams.legacyTeamName
   );
 
-  //create team and migrate the maintainers to it
+  var projectParentTeam = await gh_client.findTeam(
+    org,
+    config.teams.projectsTeamName
+  );
+
+  if (!legacyParentTeam) {
+    throw "Legacy parent team could not be found";
+  }
+
+  if (!projectParentTeam) {
+    throw "Project parent team could not be found";
+  }
+  //create a new team and add the maintainers to it
   await gh_client.createRepoTeam(
     org,
     repo,
@@ -135,11 +156,14 @@ var migrateRepository = async function(org, repo) {
     maintainers
   );
 
-  //move the old team under the legacy teams team and remove the repo from the team
+  //move the old teams under the legacy teams team and remove the repo from the team
   for (const team of teams) {
     await gh_client.removeRepoFromTeam(team, org, repo);
     await gh_client.moveTeam(team, legacyParentTeam.id);
   }
+
+  // protect the master branch and enforce codeowner reviews
+  await gh_client.protectBranch(org, repo);
 };
 
 init();

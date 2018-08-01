@@ -26,7 +26,7 @@ describe("Validating Workflow", function() {
   it("Master branch enforces 2 reviewers", async function() {
     assert.isAtLeast(
       branch.required_pull_request_reviews.required_approving_review_count,
-      1
+      2
     );
   });
 
@@ -39,6 +39,7 @@ describe("Validating Workflow", function() {
   it("Master branch enforces review rules for admins", async function() {
     assert.isTrue(branch.enforce_admins.enabled);
   });
+
   /*
   it("Has a repository description", async function() {
     assert.isNotEmpty(metrics.description);

@@ -1,5 +1,5 @@
 const vorpal = require("vorpal")();
-const _trafficLightConfigFile = require("./.trafficlight");
+const _trafficLightConfigFile = require("../.trafficlight");
 const utill = require("./cli-tasks/utill");
 const github = require("./github")(_trafficLightConfigFile.credentials);
 
@@ -10,6 +10,9 @@ github.getUserOrgs().then(function(orgs) {
   const create = require("./cli-tasks/create")(_trafficLightConfigFile);
   const migrate = require("./cli-tasks/migrate")(_trafficLightConfigFile);
   const validate = require("./cli-tasks/validate")(_trafficLightConfigFile);
+  const maintainers = require("./cli-tasks/maintainers")(
+    _trafficLightConfigFile
+  );
 
   vorpal.command("create [repo]").action(function(args, cb) {
     create(this, args, cb);
@@ -21,6 +24,10 @@ github.getUserOrgs().then(function(orgs) {
 
   vorpal.command("validate [repo]").action(function(args, cb) {
     validate(this, args, cb);
+  });
+
+  vorpal.command("maintainers [repo]").action(function(args, cb) {
+    maintainers(this, args, cb);
   });
 
   //Display start-up message

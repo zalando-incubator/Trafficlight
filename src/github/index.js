@@ -1,8 +1,14 @@
 const octokit = require("@octokit/rest")();
 
-var getRepoTeams = async function(org, repo) {
-  const teams = await octokit.repos.getTeams({ owner: org, repo: repo });
-  return teams.data;
+var getRepoCollaborators = async function(org, repo, affiliation = "all") {
+  const collabs = await octokit.repos.getCollaborators({
+    owner: org,
+    repo: repo,
+    affiliation: affiliation,
+    per_page: 100,
+    page: 1
+  });
+  return collabs.data;
 };
 
 var getUserOrgs = async function() {
@@ -12,6 +18,16 @@ var getUserOrgs = async function() {
 
 var getRepo = async function(org, repo) {
   const result = await octokit.repos.get({ owner: org, repo: repo });
+  return result.data;
+};
+
+var getRepos = async function(org) {
+  const result = await octokit.repos.getForOrg({
+    org: org,
+    per_page: 100,
+    page: 1
+  });
+
   return result.data;
 };
 
@@ -46,15 +62,16 @@ var getCommunityMetrics = async function(org, repo) {
 
 // returns a string array of all maintainer logins on
 // all teams that have write or admin access to the repo
-var getRepoMaintainers = async function(org, repo) {
-  const teams = await getRepoTeams(org, repo);
+var getRepoMaintainers = async function(org, repo, ignoreOwners = true) {
+  let teams = await getRepoTeams(org, repo);
   const maintainers = [];
 
+  if (ignoreOwners) {
+    teams = teams.filter(x => x.name !== "Team " + repo);
+  }
+
   for (const team of teams) {
-    if (
-      team.name !== "Team " + repo &&
-      (team.permission === "admin" || team.permission === "push")
-    ) {
+    if (team && (team.permission === "admin" || team.permission === "push")) {
       const members = await octokit.orgs.getTeamMembers({ id: team.id });
       for (const member of members.data) {
         maintainers.push(member);
@@ -88,7 +105,7 @@ var moveTeam = async function(team, newParentTeamId) {
 
 var removeRepoFromTeam = async function(team, org, repo) {
   return await octokit.orgs.deleteTeamRepo({
-    team_id: team.id,
+    id: team.id,
     owner: org,
     repo: repo
   });
@@ -96,14 +113,7 @@ var removeRepoFromTeam = async function(team, org, repo) {
 
 var getRepoTeams = async function(org, repo) {
   const teams = await octokit.repos.getTeams({ owner: org, repo: repo });
-
-  var result = teams.data.map(x => {
-    if (x.permission === "admin" || x.permission === "push") {
-      return x;
-    }
-  });
-
-  return result;
+  return teams.data;
 };
 
 var findTeam = async function(org, team) {
@@ -118,11 +128,15 @@ var findTeam = async function(org, team) {
   return null;
 };
 
+function onlyUnique(value, index, self) {
+  return self.indexOf(value) === index;
+}
+
 var createRepoTeam = async function(org, repo, parentTeam, maintainers = null) {
   try {
     // convert the list of maintainers to github logins
     var mainTainerGithubNames = maintainers
-      ? maintainers.map(x => x.login)
+      ? maintainers.map(x => x.login).filter(onlyUnique)
       : [];
 
     var data = {
@@ -201,12 +215,12 @@ var protectBranch = async function(org, repo, branch = "master") {
 
       required_pull_request_reviews: {
         require_code_owner_reviews: true,
-        required_approving_review_count: 2,
+        required_approving_review_count: 1,
         dismissal_restrictions: { users: [], teams: [] },
         dismiss_stale_reviews: false
       },
 
-      enforce_admins: true,
+      enforce_admins: false,
       restrictions: null,
       headers: {
         accept: "application/vnd.github.luke-cage-preview+json"
@@ -250,10 +264,12 @@ var ex = function(credentials) {
     createRepoTeam,
     findTeam,
     getRepo,
+    getRepos,
     getCommunityMetrics,
     getBranchProtection,
     getRepoTeams,
     getRepoMaintainers,
+    getRepoCollaborators,
     getUser,
     getUserOrgs,
     moveTeam,

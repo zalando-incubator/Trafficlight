@@ -51,7 +51,6 @@ var askForProjectDetails = function(ctx, args, cb) {
 var migrateProject = function(ctx, cb) {
   console.log(config);
 
-  //ask if there is more maintainers
   ctx.prompt(
     [
       {
@@ -76,7 +75,7 @@ var migrateProject = function(ctx, cb) {
     function(result) {
       if (result.create === "yes") {
         client.migrate(config.org, config.repo).then(function() {
-          console.log("############  Repositor migrated  #########");
+          console.log("############  Repository migrated  #########");
           cb();
         });
       } else {
