@@ -1,7 +1,24 @@
-var assert = require("chai").assert;
-var github = require("../../github");
+var assert = require("chai").assert,
+  github = require("../../github"),
+  http = require("http"),
+  url = require("url");
 
 var repo, org, config, branch;
+
+var checkFileExists = function(org, repo, path, callback) {
+  var gh_url =
+    "https://raw.githubusercontent.com/" + org + "/" + repo + "/master/" + path;
+  var options = {
+    method: "HEAD",
+    host: url.parse(gh_url).host,
+    port: 80,
+    path: url.parse(gh_url).pathname
+  };
+  var req = http.request(options, function(r) {
+    callback(r.statusCode == 200);
+  });
+  req.end();
+};
 
 describe("Validating Workflow", function() {
   before(async function() {
@@ -23,10 +40,10 @@ describe("Validating Workflow", function() {
     assert.isNotNull(branch);
   });
 
-  it("Master branch enforces 2 reviewers", async function() {
+  it("Master branch enforces atleast 1 reviewer", async function() {
     assert.isAtLeast(
       branch.required_pull_request_reviews.required_approving_review_count,
-      2
+      1
     );
   });
 
@@ -38,6 +55,12 @@ describe("Validating Workflow", function() {
 
   it("Master branch enforces review rules for admins", async function() {
     assert.isTrue(branch.enforce_admins.enabled);
+  });
+
+  it("Repository has a CODEOWNERS file", async function() {
+    checkFileExists(org, repo, ".github/CODEOWNERS", function(found) {
+      assert.isTrue(found);
+    });
   });
 
   /*

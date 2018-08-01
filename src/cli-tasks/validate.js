@@ -47,6 +47,7 @@ var askForProjectDetails = function(ctx, args, cb) {
 
 var validateProject = function(ctx, cb) {
   client.validate(config.org, config.repo).then(function() {
+    config = {};
     cb();
   });
 };

@@ -119,6 +119,8 @@ var listRepositoryStats = function(ctx, cb) {
     for (const res of result) {
       table.push(res);
     }
+
+    config = {};
     console.log(table.toString());
     cb();
   });

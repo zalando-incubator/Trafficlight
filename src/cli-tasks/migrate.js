@@ -76,9 +76,12 @@ var migrateProject = function(ctx, cb) {
       if (result.create === "yes") {
         client.migrate(config.org, config.repo).then(function() {
           console.log("############  Repository migrated  #########");
+          config = {};
+
           cb();
         });
       } else {
+        config = {};
         cb();
       }
     }
