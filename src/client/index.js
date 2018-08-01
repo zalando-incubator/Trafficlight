@@ -5,7 +5,7 @@ var compliance = require("../compliance");
 
 var config = {
   boilerplate: {
-    org: "perploug",
+    org: "zalando-incubator",
     repo: "new-project"
   },
   teams: {
