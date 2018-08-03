@@ -50,6 +50,8 @@ module.exports = {
 };
 ```
 
+test
+
 You can also override how the tool looks for teams and migrates them, and the source for its boilerplate files by adding the following:
 
 ```
